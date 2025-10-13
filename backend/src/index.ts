@@ -31,6 +31,21 @@ app.use('/api/channels', channelRoutes);
 app.use('/api/videos', videoRoutes);
 app.use('/api/video-tasks', videoTaskRoutes);
 
+// Root route
+app.get('/', (req, res) => {
+  res.json({ 
+    message: 'Content Schedule Manager API',
+    version: '1.0.0',
+    endpoints: {
+      auth: '/api/auth',
+      channels: '/api/channels',
+      videos: '/api/videos',
+      videoTasks: '/api/video-tasks',
+      health: '/health'
+    }
+  });
+});
+
 // Health check
 app.get('/health', (req, res) => {
   res.json({ status: 'ok' });
