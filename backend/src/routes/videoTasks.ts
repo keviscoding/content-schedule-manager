@@ -283,7 +283,7 @@ router.post('/:id/complete', authenticate, async (req: AuthRequest, res: Respons
     }
 
     task.status = 'completed';
-    task.completedVideoId = video._id;
+    task.completedVideoId = video._id as any;
     task.completedAt = new Date();
     await task.save();
 

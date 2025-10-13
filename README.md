@@ -1,6 +1,11 @@
-# Content Schedule Manager
+# 📺 Content Schedule Manager
 
-Never miss a YouTube shorts deadline again! Manage multiple channels, track posting schedules, and collaborate with editors.
+Never miss a YouTube shorts deadline again! A complete management system for YouTube shorts channels with deadline tracking, editor collaboration, and task management.
+
+![Status](https://img.shields.io/badge/status-active-success.svg)
+![License](https://img.shields.io/badge/license-MIT-blue.svg)
+
+## 🎯 Features
 
 ## 🚀 Quick Start
 

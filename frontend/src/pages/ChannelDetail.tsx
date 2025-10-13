@@ -14,7 +14,7 @@ export default function ChannelDetail() {
     notes: '',
   });
 
-  const { data: channelData, refetch } = useQuery({
+  const { data: channelData } = useQuery({
     queryKey: ['channel', id],
     queryFn: async () => {
       const response = await api.get(`/api/channels/${id}`);

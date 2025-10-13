@@ -1,5 +1,6 @@
 import express, { Response } from 'express';
 import bcrypt from 'bcryptjs';
+import { Types } from 'mongoose';
 import { User } from '../models/User';
 import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from '../utils/jwt';
 import { authenticate, AuthRequest } from '../middleware/auth';
@@ -39,14 +40,16 @@ router.post('/register', async (req, res: Response) => {
       role: role || 'editor',
     });
 
+    const userId = (user._id as Types.ObjectId).toString();
+    
     const accessToken = generateAccessToken({
-      userId: user._id.toString(),
+      userId,
       email: user.email,
       role: user.role,
     });
 
     const refreshToken = generateRefreshToken({
-      userId: user._id.toString(),
+      userId,
       email: user.email,
       role: user.role,
     });
@@ -60,7 +63,7 @@ router.post('/register', async (req, res: Response) => {
 
     res.status(201).json({
       user: {
-        id: user._id,
+        id: userId,
         email: user.email,
         name: user.name,
         role: user.role,
@@ -112,14 +115,16 @@ router.post('/login', async (req, res: Response) => {
       });
     }
 
+    const userId = (user._id as Types.ObjectId).toString();
+    
     const accessToken = generateAccessToken({
-      userId: user._id.toString(),
+      userId,
       email: user.email,
       role: user.role,
     });
 
     const refreshToken = generateRefreshToken({
-      userId: user._id.toString(),
+      userId,
       email: user.email,
       role: user.role,
     });
@@ -133,7 +138,7 @@ router.post('/login', async (req, res: Response) => {
 
     res.json({
       user: {
-        id: user._id,
+        id: userId,
         email: user.email,
         name: user.name,
         role: user.role,
@@ -177,14 +182,16 @@ router.post('/refresh', async (req, res: Response) => {
       });
     }
 
+    const userId = (user._id as Types.ObjectId).toString();
+    
     const newAccessToken = generateAccessToken({
-      userId: user._id.toString(),
+      userId,
       email: user.email,
       role: user.role,
     });
 
     const newRefreshToken = generateRefreshToken({
-      userId: user._id.toString(),
+      userId,
       email: user.email,
       role: user.role,
     });
