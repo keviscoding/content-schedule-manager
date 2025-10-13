@@ -17,9 +17,7 @@
     "axios": "^1.6.5",
     "socket.io-client": "^4.6.1",
     "react-dropzone": "^14.2.3",
-    "date-fns": "^3.0.6"
-  },
-  "devDependencies": {
+    "date-fns": "^3.0.6",
     "@types/react": "^18.2.47",
     "@types/react-dom": "^18.2.18",
     "@vitejs/plugin-react": "^4.2.1",
