@@ -4,7 +4,7 @@
   "main": "dist/index.js",
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "build": "echo 'Build skipped - using tsx'",
+    "build": "cd ../frontend && npm install && npm run build && cd ../backend",
     "start": "npx tsx src/index.ts"
   },
   "dependencies": {

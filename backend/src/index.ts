@@ -15,40 +15,30 @@ dotenv.config({ path: path.join(__dirname, '../.env') });
 const app = express();
 const PORT = process.env.PORT || 3001;
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/content-schedule-manager';
-const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
 
 // Middleware
-app.use(cors({
-  origin: FRONTEND_URL,
-  credentials: true,
-}));
+app.use(cors({ credentials: true }));
 app.use(express.json());
 app.use(cookieParser());
 
-// Routes
+// API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/channels', channelRoutes);
 app.use('/api/videos', videoRoutes);
 app.use('/api/video-tasks', videoTaskRoutes);
 
-// Root route
-app.get('/', (req, res) => {
-  res.json({ 
-    message: 'Content Schedule Manager API',
-    version: '1.0.0',
-    endpoints: {
-      auth: '/api/auth',
-      channels: '/api/channels',
-      videos: '/api/videos',
-      videoTasks: '/api/video-tasks',
-      health: '/health'
-    }
-  });
+// Health check
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok' });
 });
 
-// Health check
-app.get('/health', (req, res) => {
-  res.json({ status: 'ok' });
+// Serve static files from frontend build
+const frontendPath = path.join(__dirname, '../../frontend/dist');
+app.use(express.static(frontendPath));
+
+// Serve index.html for all other routes (SPA support)
+app.get('*', (req, res) => {
+  res.sendFile(path.join(frontendPath, 'index.html'));
 });
 
 // Connect to MongoDB and start server
