@@ -15,6 +15,12 @@ export default function Dashboard() {
     targetPostingTime: '14:00',
   });
 
+  // Redirect editors to their own dashboard
+  if (user?.role === 'editor') {
+    navigate('/editor-dashboard');
+    return null;
+  }
+
   const { data: channelsData, refetch, isLoading } = useQuery({
     queryKey: ['channels'],
     queryFn: async () => {

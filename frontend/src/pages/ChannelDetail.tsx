@@ -132,7 +132,7 @@ export default function ChannelDetail() {
                   />
                 </div>
               )}
-              <div className="flex gap-3">
+              <div className="flex flex-wrap gap-3">
                 <a
                   href={channel.youtubeUrl}
                   target="_blank"
@@ -161,13 +161,22 @@ export default function ChannelDetail() {
                   Refresh
                 </button>
                 <Link
+                  to={`/channels/${id}/editors`}
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors font-medium"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                  </svg>
+                  Manage Editors
+                </Link>
+                <Link
                   to={`/channels/${id}/inspiration`}
                   className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl hover:from-purple-700 hover:to-pink-700 transition-all font-medium"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                   </svg>
-                  Inspiration Channels
+                  Inspiration
                 </Link>
               </div>
             </div>

@@ -3,10 +3,12 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useAuthStore } from './store/authStore';
 import LoginPage from './pages/LoginPage';
 import Dashboard from './pages/Dashboard';
+import EditorDashboard from './pages/EditorDashboard';
 import ChannelDetail from './pages/ChannelDetail';
 import { InspirationChannels } from './pages/InspirationChannels';
 import VideoUploadPage from './pages/VideoUploadPage';
 import VideoReviewPage from './pages/VideoReviewPage';
+import ManageEditors from './pages/ManageEditors';
 
 const queryClient = new QueryClient();
 
@@ -26,6 +28,14 @@ function App() {
             element={
               <PrivateRoute>
                 <Dashboard />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/editor-dashboard"
+            element={
+              <PrivateRoute>
+                <EditorDashboard />
               </PrivateRoute>
             }
           />
@@ -58,6 +68,14 @@ function App() {
             element={
               <PrivateRoute>
                 <VideoReviewPage />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/channels/:channelId/editors"
+            element={
+              <PrivateRoute>
+                <ManageEditors />
               </PrivateRoute>
             }
           />

@@ -247,4 +247,38 @@ router.post('/logout', (req, res: Response) => {
   res.json({ message: 'Logged out successfully' });
 });
 
+// Get all users (filtered by role)
+router.get('/users', authenticate, async (req: AuthRequest, res: Response) => {
+  try {
+    const { role } = req.query;
+    
+    // Only owners can list users
+    if (req.user!.role !== 'owner') {
+      return res.status(403).json({
+        error: {
+          code: 'FORBIDDEN',
+          message: 'Only owners can list users',
+        },
+      });
+    }
+
+    const filter: any = {};
+    if (role) {
+      filter.role = role;
+    }
+
+    const users = await User.find(filter).select('-passwordHash').sort({ name: 1 });
+
+    res.json({ users });
+  } catch (error) {
+    console.error('Get users error:', error);
+    res.status(500).json({
+      error: {
+        code: 'SERVER_ERROR',
+        message: 'Failed to fetch users',
+      },
+    });
+  }
+});
+
 export default router;
