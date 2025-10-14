@@ -7,9 +7,11 @@
 3. Go to "Settings" → "Environment Variables"
 4. Add a new environment variable:
    - **Key**: `YOUTUBE_API_KEY`
-   - **Value**: `AIzaSyBsr3c_565Oq2Tr1-vfi_JuViGPhU42rjM`
+   - **Value**: `[Your YouTube API Key - add it directly in Digital Ocean]`
 
 5. Click "Save" and the app will redeploy
+
+**Note:** Never commit API keys to Git. Add them directly in Digital Ocean's environment variables.
 
 ## What This Enables
 
