@@ -192,6 +192,83 @@ router.delete('/:id', authenticate, requireChannelOwnership, async (req: AuthReq
   }
 });
 
+// Manually refresh YouTube data for a channel
+router.post('/:id/refresh-youtube', authenticate, async (req: AuthRequest, res: Response) => {
+  try {
+    const channel = await Channel.findById(req.params.id);
+
+    if (!channel) {
+      return res.status(404).json({
+        error: {
+          code: 'CHANNEL_NOT_FOUND',
+          message: 'Channel not found',
+        },
+      });
+    }
+
+    // Check access
+    if (req.user!.role === 'owner' && channel.ownerId.toString() !== req.user!.userId) {
+      return res.status(403).json({
+        error: {
+          code: 'FORBIDDEN',
+          message: 'You do not have access to this channel',
+        },
+      });
+    }
+
+    if (req.user!.role === 'editor') {
+      const assignment = await ChannelEditor.findOne({
+        channelId: req.params.id,
+        editorId: req.user!.userId,
+      });
+
+      if (!assignment) {
+        return res.status(403).json({
+          error: {
+            code: 'FORBIDDEN',
+            message: 'You do not have access to this channel',
+          },
+        });
+      }
+    }
+
+    // Fetch fresh YouTube data
+    const youtubeData = await fetchYouTubeChannelData(channel.youtubeUrl);
+
+    if (youtubeData) {
+      channel.latestVideoDate = youtubeData.latestVideoDate;
+      channel.latestVideoTitle = youtubeData.latestVideoTitle;
+      channel.lastYouTubeCheck = new Date();
+
+      // Update status
+      const hoursSinceUpload = (Date.now() - youtubeData.latestVideoDate.getTime()) / (1000 * 60 * 60);
+      if (hoursSinceUpload > 48) {
+        channel.status = 'overdue';
+      } else if (hoursSinceUpload > 36) {
+        channel.status = 'due-soon';
+      } else {
+        channel.status = 'on-time';
+      }
+
+      await channel.save();
+    }
+
+    res.json({ 
+      channel,
+      youtubeData,
+      message: 'YouTube data refreshed successfully'
+    });
+  } catch (error) {
+    console.error('Refresh YouTube data error:', error);
+    res.status(500).json({
+      error: {
+        code: 'SERVER_ERROR',
+        message: 'Failed to refresh YouTube data',
+      },
+    });
+  }
+});
+
 export default router;
 
 // Assign editor to channel

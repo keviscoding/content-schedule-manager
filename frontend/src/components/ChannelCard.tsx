@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { formatDistanceToNow } from 'date-fns';
+import { TimeSinceUpload } from './TimeSinceUpload';
 
 interface ChannelCardProps {
   channel: any;
@@ -62,17 +62,24 @@ export function ChannelCard({ channel, youtubeData }: ChannelCardProps) {
         </Link>
 
         {youtubeData && (
-          <div className="space-y-2 mb-4">
+          <div className="space-y-3 mb-4">
             <p className="text-sm text-gray-600">
               <span className="font-semibold">{youtubeData.subscriberCount}</span> subscribers
             </p>
+            
+            {/* Real-time counter */}
+            <div>
+              <p className="text-xs font-medium text-gray-500 mb-1.5">Last Upload:</p>
+              <TimeSinceUpload 
+                lastUploadDate={channel.latestVideoDate || youtubeData.latestVideoDate} 
+                showIcon={true}
+              />
+            </div>
+
             {youtubeData.latestVideoTitle && (
               <div className="text-sm text-gray-500">
-                <p className="font-medium text-gray-700">Latest video:</p>
-                <p className="truncate">{youtubeData.latestVideoTitle}</p>
-                <p className="text-xs text-gray-400 mt-1">
-                  {formatDistanceToNow(new Date(youtubeData.latestVideoDate), { addSuffix: true })}
-                </p>
+                <p className="font-medium text-gray-700 text-xs mb-1">Latest video:</p>
+                <p className="truncate text-xs">{youtubeData.latestVideoTitle}</p>
               </div>
             )}
           </div>

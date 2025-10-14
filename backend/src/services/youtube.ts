@@ -19,7 +19,7 @@ export async function fetchYouTubeChannelData(channelUrl: string): Promise<YouTu
 
   try {
     // Extract channel ID from URL
-    const channelId = extractChannelId(channelUrl);
+    const channelId = await extractChannelId(channelUrl);
     if (!channelId) return null;
 
     // Fetch channel info
@@ -63,16 +63,49 @@ export async function fetchYouTubeChannelData(channelUrl: string): Promise<YouTu
   }
 }
 
-function extractChannelId(url: string): string | null {
-  const patterns = [
-    /youtube\.com\/channel\/([^\/\?]+)/,
-    /youtube\.com\/@([^\/\?]+)/,
-    /youtube\.com\/c\/([^\/\?]+)/,
-  ];
+async function extractChannelId(url: string): Promise<string | null> {
+  // Direct channel ID
+  const channelIdMatch = url.match(/youtube\.com\/channel\/([^\/\?]+)/);
+  if (channelIdMatch) return channelIdMatch[1];
 
-  for (const pattern of patterns) {
-    const match = url.match(pattern);
-    if (match) return match[1];
+  // Handle @username format
+  const handleMatch = url.match(/youtube\.com\/@([^\/\?]+)/);
+  if (handleMatch) {
+    try {
+      const response = await axios.get(`${YOUTUBE_API_BASE}/search`, {
+        params: {
+          part: 'snippet',
+          q: handleMatch[1],
+          type: 'channel',
+          maxResults: 1,
+          key: YOUTUBE_API_KEY,
+        },
+      });
+      return response.data.items?.[0]?.snippet?.channelId || null;
+    } catch (error) {
+      console.error('Error resolving channel handle:', error);
+      return null;
+    }
+  }
+
+  // Handle /c/ format
+  const customMatch = url.match(/youtube\.com\/c\/([^\/\?]+)/);
+  if (customMatch) {
+    try {
+      const response = await axios.get(`${YOUTUBE_API_BASE}/search`, {
+        params: {
+          part: 'snippet',
+          q: customMatch[1],
+          type: 'channel',
+          maxResults: 1,
+          key: YOUTUBE_API_KEY,
+        },
+      });
+      return response.data.items?.[0]?.snippet?.channelId || null;
+    } catch (error) {
+      console.error('Error resolving custom channel URL:', error);
+      return null;
+    }
   }
 
   return null;

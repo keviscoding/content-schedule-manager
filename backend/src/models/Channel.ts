@@ -18,6 +18,10 @@ export interface IChannel extends Document {
   lastPostedAt: Date | null;
   nextDeadline: Date | null;
   inspirationChannels: IInspirationChannel[];
+  lastYouTubeCheck: Date | null;
+  youtubeChannelId: string | null;
+  latestVideoDate: Date | null;
+  latestVideoTitle: string | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -90,6 +94,22 @@ const ChannelSchema = new Schema<IChannel>(
     inspirationChannels: {
       type: [InspirationChannelSchema],
       default: [],
+    },
+    lastYouTubeCheck: {
+      type: Date,
+      default: null,
+    },
+    youtubeChannelId: {
+      type: String,
+      default: null,
+    },
+    latestVideoDate: {
+      type: Date,
+      default: null,
+    },
+    latestVideoTitle: {
+      type: String,
+      default: null,
     },
   },
   {

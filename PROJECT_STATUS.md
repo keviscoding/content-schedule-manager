@@ -13,6 +13,9 @@
   - Set target posting times
   - Track last posted time
   - Channel status (on-time, due-soon, overdue)
+  - **NEW: Real-time YouTube monitoring**
+  - **NEW: Automatic status updates every 15 minutes**
+  - **NEW: Manual refresh endpoint**
   
 - ✅ **Inspiration Channels**
   - Add model channels to each channel
@@ -55,14 +58,15 @@
 ## 🚧 What's Left to Build
 
 ### Backend
-- ⏳ Deadline monitoring cron job (Task 6)
+- ✅ **YouTube monitoring cron job** - Checks every 15 minutes
 - ⏳ Notification system (Task 7)
 - ⏳ WebSocket for real-time updates
 - ⏳ Email notifications
 
 ### Frontend
-- ⏳ Full dashboard UI (Task 9)
-- ⏳ Channel detail pages (Task 10)
+- ✅ **Dashboard UI** - Shows channels with real-time counters
+- ✅ **Channel detail pages** - Task board with live updates
+- ✅ **Real-time upload counter** - Updates every minute
 - ⏳ Video upload UI (Task 11)
 - ⏳ Video review UI (Task 12)
 - ⏳ Notification center (Task 13)
@@ -76,15 +80,18 @@
 
 ## 🎯 Current State
 
-**Backend:** ~70% complete
+**Backend:** ~80% complete
 - All core APIs are working
-- Missing: automated monitoring, notifications, WebSocket
+- YouTube monitoring with cron job ✅
+- Missing: notifications, WebSocket
 
-**Frontend:** ~5% complete
-- Basic login/register page exists
-- Needs: full dashboard and all feature pages
+**Frontend:** ~40% complete
+- Login/register pages ✅
+- Dashboard with real-time counters ✅
+- Channel detail with task board ✅
+- Needs: video upload/review UI, notifications
 
-**Overall:** ~40% complete
+**Overall:** ~60% complete
 
 ## 🚀 How to Use Right Now
 

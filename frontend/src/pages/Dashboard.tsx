@@ -35,6 +35,7 @@ export default function Dashboard() {
       );
       return { channels: channelsWithYouTube };
     },
+    refetchInterval: 60000, // Refetch every minute for real-time updates
   });
 
   const channels = channelsData?.channels || [];
@@ -113,9 +114,9 @@ export default function Dashboard() {
           <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
             <div className="flex items-center justify-between">
               <div>
-                <div className="text-sm font-medium text-gray-600">At Risk</div>
+                <div className="text-sm font-medium text-gray-600">Due Soon</div>
                 <div className="text-4xl font-bold text-yellow-600 mt-2">
-                  {channels.filter((c: any) => c.status === 'at-risk').length}
+                  {channels.filter((c: any) => c.status === 'due-soon').length}
                 </div>
               </div>
               <div className="w-14 h-14 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-2xl flex items-center justify-center">

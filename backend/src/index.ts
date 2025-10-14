@@ -8,6 +8,7 @@ import authRoutes from './routes/auth';
 import channelRoutes from './routes/channels';
 import videoRoutes from './routes/videos';
 import videoTaskRoutes from './routes/videoTasks';
+import { startYouTubeMonitoring } from './services/youtubeMonitor';
 
 // Load .env from backend directory
 dotenv.config({ path: path.join(__dirname, '../.env') });
@@ -48,6 +49,8 @@ mongoose
     console.log('Connected to MongoDB');
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
+      // Start YouTube monitoring after server is up
+      startYouTubeMonitoring();
     });
   })
   .catch((error) => {
