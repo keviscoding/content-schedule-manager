@@ -67,8 +67,9 @@
 - ✅ **Dashboard UI** - Shows channels with real-time counters
 - ✅ **Channel detail pages** - Task board with live updates
 - ✅ **Real-time upload counter** - Updates every minute
-- ⏳ Video upload UI (Task 11)
-- ⏳ Video review UI (Task 12)
+- ✅ **Video upload UI** - Drag & drop with progress tracking
+- ✅ **Video review UI** - Modal player with approve/reject
+- ✅ **Task-video linking** - Upload directly from tasks
 - ⏳ Notification center (Task 13)
 - ⏳ User settings (Task 14)
 
@@ -80,18 +81,21 @@
 
 ## 🎯 Current State
 
-**Backend:** ~80% complete
-- All core APIs are working
+**Backend:** ~85% complete
+- All core APIs are working ✅
 - YouTube monitoring with cron job ✅
+- Video upload/review APIs ✅
 - Missing: notifications, WebSocket
 
-**Frontend:** ~40% complete
+**Frontend:** ~70% complete
 - Login/register pages ✅
 - Dashboard with real-time counters ✅
 - Channel detail with task board ✅
-- Needs: video upload/review UI, notifications
+- Video upload interface ✅
+- Video review interface ✅
+- Needs: notifications UI, settings
 
-**Overall:** ~60% complete
+**Overall:** ~75% complete
 
 ## 🚀 How to Use Right Now
 
@@ -118,19 +122,23 @@ You can currently:
 2. ✅ Create and manage channels
 3. ✅ Add inspiration channels for each channel
 4. ✅ Assign editors to channels
-5. ✅ Upload videos (with S3/R2 storage)
-6. ✅ Approve/reject videos
-7. ✅ Mark videos as posted
-8. ✅ View posting timeline
-9. ✅ Track video status history
+5. ✅ Create and assign tasks to editors
+6. ✅ Track time since last YouTube upload (real-time)
+7. ✅ Upload videos with drag & drop interface
+8. ✅ Link videos to tasks automatically
+9. ✅ Review videos with built-in player
+10. ✅ Approve/reject videos with notes
+11. ✅ Mark videos as posted
+12. ✅ View posting timeline
+13. ✅ Track video status history
 
 ## 🎨 What's Missing
 
 You cannot yet:
-1. ❌ See a visual dashboard (need frontend)
-2. ❌ Get automatic deadline alerts (need cron job)
-3. ❌ Receive notifications (need notification system)
-4. ❌ See real-time updates (need WebSocket)
+1. ❌ Receive notifications (need notification system)
+2. ❌ See real-time updates (need WebSocket)
+3. ❌ Edit user settings (need settings page)
+4. ❌ View analytics/reports (need analytics dashboard)
 
 ## 💡 Recommended Next Steps
 

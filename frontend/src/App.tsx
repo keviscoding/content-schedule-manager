@@ -5,6 +5,8 @@ import LoginPage from './pages/LoginPage';
 import Dashboard from './pages/Dashboard';
 import ChannelDetail from './pages/ChannelDetail';
 import { InspirationChannels } from './pages/InspirationChannels';
+import VideoUploadPage from './pages/VideoUploadPage';
+import VideoReviewPage from './pages/VideoReviewPage';
 
 const queryClient = new QueryClient();
 
@@ -40,6 +42,22 @@ function App() {
             element={
               <PrivateRoute>
                 <InspirationChannels />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/upload"
+            element={
+              <PrivateRoute>
+                <VideoUploadPage />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/review"
+            element={
+              <PrivateRoute>
+                <VideoReviewPage />
               </PrivateRoute>
             }
           />

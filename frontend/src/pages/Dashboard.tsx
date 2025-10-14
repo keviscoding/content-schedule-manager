@@ -128,8 +128,8 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Add Channel Button */}
-        <div className="mb-8">
+        {/* Action Buttons */}
+        <div className="mb-8 flex gap-4">
           <button
             onClick={() => setShowAddChannel(true)}
             className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-8 py-4 rounded-2xl hover:from-purple-700 hover:to-pink-700 font-semibold shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-2"
@@ -139,6 +139,18 @@ export default function Dashboard() {
             </svg>
             Add New Channel
           </button>
+          
+          {user?.role === 'owner' && (
+            <button
+              onClick={() => navigate('/review')}
+              className="bg-white text-purple-600 border-2 border-purple-600 px-8 py-4 rounded-2xl hover:bg-purple-50 font-semibold shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-2"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+              </svg>
+              Review Videos
+            </button>
+          )}
         </div>
 
         {/* Add Channel Modal */}
