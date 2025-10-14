@@ -4,6 +4,7 @@ import { useAuthStore } from './store/authStore';
 import LoginPage from './pages/LoginPage';
 import Dashboard from './pages/Dashboard';
 import ChannelDetail from './pages/ChannelDetail';
+import { InspirationChannels } from './pages/InspirationChannels';
 
 const queryClient = new QueryClient();
 
@@ -31,6 +32,14 @@ function App() {
             element={
               <PrivateRoute>
                 <ChannelDetail />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/channels/:channelId/inspiration"
+            element={
+              <PrivateRoute>
+                <InspirationChannels />
               </PrivateRoute>
             }
           />

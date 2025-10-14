@@ -4,6 +4,7 @@ import { ChannelEditor } from '../models/ChannelEditor';
 import { User } from '../models/User';
 import { authenticate, AuthRequest } from '../middleware/auth';
 import { requireOwner, requireChannelOwnership } from '../middleware/authorization';
+import { fetchYouTubeChannelData } from '../services/youtube';
 
 const router = express.Router();
 
@@ -119,7 +120,10 @@ router.get('/:id', authenticate, async (req: AuthRequest, res: Response) => {
       }
     }
 
-    res.json({ channel });
+    // Fetch YouTube data
+    const youtubeData = await fetchYouTubeChannelData(channel.youtubeUrl);
+
+    res.json({ channel, youtubeData });
   } catch (error) {
     console.error('Get channel error:', error);
     res.status(500).json({
@@ -379,7 +383,18 @@ router.get('/:id/inspiration-channels', authenticate, async (req: AuthRequest, r
       }
     }
 
-    res.json({ inspirationChannels: channel.inspirationChannels });
+    // Fetch YouTube data for each inspiration channel
+    const inspirationChannelsWithData = await Promise.all(
+      channel.inspirationChannels.map(async (inspoChannel) => {
+        const youtubeData = await fetchYouTubeChannelData(inspoChannel.youtubeUrl);
+        return {
+          ...inspoChannel.toObject(),
+          youtubeData,
+        };
+      })
+    );
+
+    res.json({ inspirationChannels: inspirationChannelsWithData });
   } catch (error) {
     console.error('Get inspiration channels error:', error);
     res.status(500).json({
