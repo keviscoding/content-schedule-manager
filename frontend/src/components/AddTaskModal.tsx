@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { api } from '../lib/api';
 
 interface AddTaskModalProps {
@@ -19,11 +19,11 @@ export function AddTaskModal({ isOpen, onClose, channelId, videoId, onTaskAdded 
   const [loading, setLoading] = useState(false);
   const [editors, setEditors] = useState<any[]>([]);
 
-  useState(() => {
+  useEffect(() => {
     if (isOpen) {
       fetchEditors();
     }
-  });
+  }, [isOpen]);
 
   const fetchEditors = async () => {
     try {
