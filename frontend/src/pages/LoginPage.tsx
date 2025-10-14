@@ -30,7 +30,13 @@ export default function LoginPage() {
 
       if (response.data.user && response.data.accessToken) {
         setAuth(response.data.user, response.data.accessToken);
-        navigate('/dashboard');
+        
+        // Redirect based on role
+        if (response.data.user.role === 'editor') {
+          navigate('/editor-dashboard');
+        } else {
+          navigate('/dashboard');
+        }
       }
     } catch (err: any) {
       setError(err.response?.data?.error?.message || 'Something went wrong');

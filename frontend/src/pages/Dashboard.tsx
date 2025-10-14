@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../lib/api';
 import { useAuthStore } from '../store/authStore';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ChannelCard } from '../components/ChannelCard';
 
 export default function Dashboard() {
@@ -16,10 +16,11 @@ export default function Dashboard() {
   });
 
   // Redirect editors to their own dashboard
-  if (user?.role === 'editor') {
-    navigate('/editor-dashboard');
-    return null;
-  }
+  useEffect(() => {
+    if (user?.role === 'editor') {
+      navigate('/editor-dashboard', { replace: true });
+    }
+  }, [user?.role, navigate]);
 
   const { data: channelsData, refetch, isLoading } = useQuery({
     queryKey: ['channels'],
