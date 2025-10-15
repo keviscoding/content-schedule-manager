@@ -12,7 +12,7 @@ const s3Client = new S3Client({
 
 const BUCKET_NAME = process.env.S3_BUCKET || '';
 
-export const generateUploadUrl = async (fileName: string, fileType: string): Promise<string> => {
+export const generateUploadUrl = async (fileName: string, fileType: string): Promise<{ uploadUrl: string; key: string }> => {
   const key = `videos/${Date.now()}-${fileName}`;
   
   const command = new PutObjectCommand({
@@ -23,7 +23,7 @@ export const generateUploadUrl = async (fileName: string, fileType: string): Pro
 
   const uploadUrl = await getSignedUrl(s3Client, command, { expiresIn: 3600 });
   
-  return uploadUrl;
+  return { uploadUrl, key };
 };
 
 export const getFileUrl = (key: string): string => {
@@ -54,6 +54,24 @@ export const deleteFile = async (key: string): Promise<void> => {
 };
 
 export const extractKeyFromUrl = (url: string): string => {
-  const urlParts = url.split('/');
-  return urlParts.slice(-2).join('/');
+  // URL format: https://sfo3.digitaloceanspaces.com/content-manager-videos/videos/timestamp-filename.mp4
+  // We need: videos/timestamp-filename.mp4
+  
+  try {
+    const urlObj = new URL(url);
+    const pathname = urlObj.pathname; // /content-manager-videos/videos/timestamp-filename.mp4
+    
+    // Remove leading slash and bucket name
+    const parts = pathname.split('/').filter(Boolean); // ['content-manager-videos', 'videos', 'timestamp-filename.mp4']
+    
+    // Remove bucket name (first part) and join the rest
+    const key = parts.slice(1).join('/'); // 'videos/timestamp-filename.mp4'
+    
+    return key;
+  } catch (error) {
+    // Fallback to old method if URL parsing fails
+    console.error('Failed to parse URL:', url, error);
+    const urlParts = url.split('/');
+    return urlParts.slice(-2).join('/');
+  }
 };

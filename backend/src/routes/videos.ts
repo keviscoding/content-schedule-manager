@@ -79,12 +79,10 @@ router.post('/upload', authenticate, async (req: AuthRequest, res: Response) => 
       });
     }
 
-    // Generate presigned URL
-    const uploadUrl = await generateUploadUrl(fileName, fileType);
-    const key = `videos/${Date.now()}-${fileName}`;
-    const fileUrl = getFileUrl(key);
+    // Generate presigned URL and get the key
+    const { uploadUrl, key } = await generateUploadUrl(fileName, fileType);
 
-    // Create video record
+    // Create video record - store the key, not the full URL
     const video = await Video.create({
       title,
       description: description || '',
@@ -92,7 +90,7 @@ router.post('/upload', authenticate, async (req: AuthRequest, res: Response) => 
       channelId,
       uploadedById: req.user!.userId,
       status: 'pending',
-      fileUrl,
+      fileUrl: key, // Store just the key (videos/timestamp-filename.mp4)
       fileSize,
     });
 
@@ -168,8 +166,8 @@ router.get('/', authenticate, async (req: AuthRequest, res: Response) => {
     const videosWithViewUrls = await Promise.all(
       videos.map(async (video) => {
         try {
-          const key = extractKeyFromUrl(video.fileUrl);
-          const viewUrl = await generateViewUrl(key);
+          // fileUrl is now just the key (videos/timestamp-filename.mp4)
+          const viewUrl = await generateViewUrl(video.fileUrl);
           return {
             ...video.toObject(),
             fileUrl: viewUrl,
@@ -250,8 +248,8 @@ router.get('/:id', authenticate, async (req: AuthRequest, res: Response) => {
 
     // Generate presigned URL for viewing
     try {
-      const key = extractKeyFromUrl(video.fileUrl);
-      const viewUrl = await generateViewUrl(key);
+      // fileUrl is now just the key (videos/timestamp-filename.mp4)
+      const viewUrl = await generateViewUrl(video.fileUrl);
       const videoWithViewUrl = {
         ...video.toObject(),
         fileUrl: viewUrl, // Replace with presigned URL
