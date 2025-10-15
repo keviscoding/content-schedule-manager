@@ -13,11 +13,11 @@ router.post('/upload', authenticate, async (req: AuthRequest, res: Response) => 
   try {
     const { fileName, fileType, fileSize, title, description, tags, channelId } = req.body;
 
-    if (!fileName || !fileType || !fileSize || !title || !channelId) {
+    if (!fileName || !fileType || !fileSize || !title) {
       return res.status(400).json({
         error: {
           code: 'VALIDATION_ERROR',
-          message: 'File name, type, size, title, and channel ID are required',
+          message: 'File name, type, size, and title are required',
         },
       });
     }
@@ -32,40 +32,42 @@ router.post('/upload', authenticate, async (req: AuthRequest, res: Response) => 
       });
     }
 
-    // Check channel access
-    const channel = await Channel.findById(channelId);
-    if (!channel) {
-      return res.status(404).json({
-        error: {
-          code: 'CHANNEL_NOT_FOUND',
+    // Check channel access (only if channelId provided)
+    if (channelId) {
+      const channel = await Channel.findById(channelId);
+      if (!channel) {
+        return res.status(404).json({
+          error: {
+            code: 'CHANNEL_NOT_FOUND',
           message: 'Channel not found',
         },
       });
     }
 
-    // Verify user has access to upload to this channel
-    if (req.user!.role === 'owner' && channel.ownerId.toString() !== req.user!.userId) {
-      return res.status(403).json({
-        error: {
-          code: 'FORBIDDEN',
-          message: 'You do not have access to this channel',
-        },
-      });
-    }
-
-    if (req.user!.role === 'editor') {
-      const assignment = await ChannelEditor.findOne({
-        channelId,
-        editorId: req.user!.userId,
-      });
-
-      if (!assignment) {
+      // Verify user has access to upload to this channel
+      if (req.user!.role === 'owner' && channel.ownerId.toString() !== req.user!.userId) {
         return res.status(403).json({
           error: {
             code: 'FORBIDDEN',
-            message: 'You are not assigned to this channel',
+            message: 'You do not have access to this channel',
           },
         });
+      }
+
+      if (req.user!.role === 'editor') {
+        const assignment = await ChannelEditor.findOne({
+          channelId,
+          editorId: req.user!.userId,
+        });
+
+        if (!assignment) {
+          return res.status(403).json({
+            error: {
+              code: 'FORBIDDEN',
+              message: 'You are not assigned to this channel',
+            },
+          });
+        }
       }
     }
 
@@ -87,7 +89,7 @@ router.post('/upload', authenticate, async (req: AuthRequest, res: Response) => 
       title,
       description: description || '',
       tags: tags || [],
-      channelId,
+      channelId: channelId || null, // Can be null - owner assigns later
       uploadedById: req.user!.userId,
       status: 'pending',
       fileUrl: key, // Store just the key (videos/timestamp-filename.mp4)

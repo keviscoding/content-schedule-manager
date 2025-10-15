@@ -4,7 +4,7 @@ export interface IVideo extends Document {
   title: string;
   description: string;
   tags: string[];
-  channelId: Types.ObjectId;
+  channelId: Types.ObjectId | null; // Can be null until owner assigns
   uploadedById: Types.ObjectId;
   status: 'pending' | 'approved' | 'rejected' | 'needs-revision' | 'posted';
   fileUrl: string;
@@ -36,7 +36,8 @@ const VideoSchema = new Schema<IVideo>(
     channelId: {
       type: Schema.Types.ObjectId,
       ref: 'Channel',
-      required: true,
+      required: false, // Optional - assigned by owner during approval
+      default: null,
       index: true,
     },
     uploadedById: {

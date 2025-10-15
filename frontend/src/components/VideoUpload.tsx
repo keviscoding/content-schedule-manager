@@ -3,7 +3,7 @@ import { useDropzone } from 'react-dropzone';
 import { api } from '../lib/api';
 
 interface VideoUploadProps {
-  channelId: string;
+  channelId?: string; // Optional - only for owners
   onUploadComplete?: () => void;
   taskId?: string;
 }
@@ -48,7 +48,7 @@ export function VideoUpload({ channelId, onUploadComplete, taskId }: VideoUpload
         title: metadata.title,
         description: metadata.description,
         tags: metadata.tags.split(',').map(t => t.trim()).filter(Boolean),
-        channelId,
+        ...(channelId && { channelId }), // Only include if provided
       });
 
       // Step 2: Upload to S3/R2
