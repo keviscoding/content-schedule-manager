@@ -177,35 +177,35 @@ export default function VideoReviewPage() {
             <p className="text-gray-600">Videos will appear here when editors upload them</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
             {videos.map((video: any) => (
               <div
                 key={video._id}
                 className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all cursor-pointer"
                 onClick={() => setSelectedVideo(video)}
               >
-                {/* Thumbnail */}
-                <div className="relative h-48">
+                {/* Thumbnail - Full 9:16 aspect ratio */}
+                <div className="relative w-full" style={{ aspectRatio: '9/16' }}>
                   <VideoThumbnail videoUrl={video.fileUrl} className="h-full w-full" />
-                  <div className="absolute top-3 right-3">
-                    <span className={`px-3 py-1.5 rounded-full text-xs font-semibold border-2 ${getStatusColor(video.status)}`}>
+                  <div className="absolute top-2 right-2">
+                    <span className={`px-2 py-1 rounded-full text-xs font-semibold border-2 ${getStatusColor(video.status)}`}>
                       {video.status}
                     </span>
                   </div>
                 </div>
 
                 {/* Info */}
-                <div className="p-4">
-                  <h3 className="font-bold text-gray-900 mb-2 line-clamp-2">{video.title}</h3>
-                  <div className="space-y-1 text-sm text-gray-600">
-                    <p className="flex items-center gap-2">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="p-3">
+                  <h3 className="font-bold text-gray-900 text-sm mb-2 line-clamp-2">{video.title}</h3>
+                  <div className="space-y-1 text-xs text-gray-600">
+                    <p className="flex items-center gap-1 truncate">
+                      <svg className="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z" />
                       </svg>
-                      {video.channelId?.name || 'Unknown Channel'}
+                      <span className="truncate">{video.channelId?.name || 'Unknown'}</span>
                     </p>
-                    <p className="flex items-center gap-2">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <p className="flex items-center gap-1">
+                      <svg className="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
                       {formatDistanceToNow(new Date(video.createdAt), { addSuffix: true })}
