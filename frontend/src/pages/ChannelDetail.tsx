@@ -5,12 +5,16 @@ import { useState } from 'react';
 import { AddTaskModal } from '../components/AddTaskModal';
 import { formatDistanceToNow } from 'date-fns';
 import { TimeSinceUpload } from '../components/TimeSinceUpload';
+import { useAuthStore } from '../store/authStore';
 
 export default function ChannelDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuthStore();
   const [showAddTask, setShowAddTask] = useState(false);
   const [selectedVideo, setSelectedVideo] = useState<string | null>(null);
+  
+  const isOwner = user?.role === 'owner';
 
   const { data: channelData } = useQuery({
     queryKey: ['channel', id],
@@ -160,24 +164,29 @@ export default function ChannelDetail() {
                   </svg>
                   Refresh
                 </button>
-                <Link
-                  to={`/channels/${id}/editors`}
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors font-medium"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                  </svg>
-                  Manage Editors
-                </Link>
-                <Link
-                  to={`/channels/${id}/inspiration`}
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl hover:from-purple-700 hover:to-pink-700 transition-all font-medium"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                  </svg>
-                  Inspiration
-                </Link>
+                {/* Owner-only buttons */}
+                {isOwner && (
+                  <>
+                    <Link
+                      to={`/channels/${id}/editors`}
+                      className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors font-medium"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                      </svg>
+                      Manage Editors
+                    </Link>
+                    <Link
+                      to={`/channels/${id}/inspiration`}
+                      className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl hover:from-purple-700 hover:to-pink-700 transition-all font-medium"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                      </svg>
+                      Inspiration
+                    </Link>
+                  </>
+                )}
               </div>
             </div>
           </div>
@@ -190,16 +199,8 @@ export default function ChannelDetail() {
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold text-gray-900">Task Board</h2>
             <div className="flex gap-2">
-              <button
-                onClick={() => navigate(`/upload?channelId=${id}`)}
-                className="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-medium hover:from-blue-700 hover:to-indigo-700 transition-all flex items-center gap-2"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                </svg>
-                Upload Video
-              </button>
-              {videos.length > 0 && (
+              {/* Owner-only: Add Task dropdown */}
+              {isOwner && videos.length > 0 && (
                 <select
                   onChange={(e) => e.target.value && handleAddTask(e.target.value)}
                   className="px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-medium cursor-pointer"
@@ -379,12 +380,15 @@ export default function ChannelDetail() {
                         )}
                       </div>
                     </div>
-                    <button
-                      onClick={() => handleAddTask(video._id)}
-                      className="px-4 py-2 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors text-sm font-medium"
-                    >
-                      + Add Task
-                    </button>
+                    {/* Owner-only: Add Task button */}
+                    {isOwner && (
+                      <button
+                        onClick={() => handleAddTask(video._id)}
+                        className="px-4 py-2 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors text-sm font-medium"
+                      >
+                        + Add Task
+                      </button>
+                    )}
                   </div>
                 </div>
               ))}
