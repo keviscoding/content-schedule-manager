@@ -10,7 +10,7 @@ export function VideoPlayer({ videoUrl, title, className = '' }: VideoPlayerProp
   const [error, setError] = useState(false);
 
   return (
-    <div className={`bg-black rounded-xl overflow-hidden ${className}`}>
+    <div className={`bg-black rounded-xl overflow-hidden mx-auto ${className}`} style={{ maxWidth: '400px', aspectRatio: '9/16' }}>
       {error ? (
         <div className="w-full h-full flex items-center justify-center p-8 text-center">
           <div>
@@ -31,10 +31,11 @@ export function VideoPlayer({ videoUrl, title, className = '' }: VideoPlayerProp
       ) : (
         <video
           controls
-          className="w-full h-full"
+          className="w-full h-full object-contain"
           preload="metadata"
           crossOrigin="anonymous"
           onError={() => setError(true)}
+          style={{ maxHeight: '80vh' }}
         >
           <source src={videoUrl} type="video/mp4" />
           <source src={videoUrl} type="video/quicktime" />
