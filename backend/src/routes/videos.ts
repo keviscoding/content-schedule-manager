@@ -69,6 +69,16 @@ router.post('/upload', authenticate, async (req: AuthRequest, res: Response) => 
       }
     }
 
+    // Check if S3/Spaces is configured
+    if (!process.env.S3_BUCKET || !process.env.S3_ACCESS_KEY || !process.env.S3_SECRET_KEY) {
+      return res.status(500).json({
+        error: {
+          code: 'STORAGE_NOT_CONFIGURED',
+          message: 'Storage (S3/Spaces) is not configured. Please set S3_BUCKET, S3_ACCESS_KEY, and S3_SECRET_KEY environment variables.',
+        },
+      });
+    }
+
     // Generate presigned URL
     const uploadUrl = await generateUploadUrl(fileName, fileType);
     const key = `videos/${Date.now()}-${fileName}`;
@@ -97,12 +107,23 @@ router.post('/upload', authenticate, async (req: AuthRequest, res: Response) => 
       video,
       uploadUrl,
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Upload initiation error:', error);
+    
+    // Check if it's an S3 configuration error
+    if (error.name === 'CredentialsProviderError' || error.message?.includes('credentials')) {
+      return res.status(500).json({
+        error: {
+          code: 'STORAGE_CREDENTIALS_ERROR',
+          message: 'Storage credentials are invalid. Please check S3_ACCESS_KEY and S3_SECRET_KEY.',
+        },
+      });
+    }
+    
     res.status(500).json({
       error: {
         code: 'SERVER_ERROR',
-        message: 'Failed to initiate upload',
+        message: error.message || 'Failed to initiate upload',
       },
     });
   }
