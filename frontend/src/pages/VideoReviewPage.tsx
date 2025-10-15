@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { api } from '../lib/api';
 import { useAuthStore } from '../store/authStore';
 import { VideoPlayer } from '../components/VideoPlayer';
+import { VideoThumbnail } from '../components/VideoThumbnail';
 import { useState } from 'react';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -184,10 +185,8 @@ export default function VideoReviewPage() {
                 onClick={() => setSelectedVideo(video)}
               >
                 {/* Thumbnail */}
-                <div className="relative h-48 bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
-                  <svg className="w-16 h-16 text-white opacity-50" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" />
-                  </svg>
+                <div className="relative h-48">
+                  <VideoThumbnail videoUrl={video.fileUrl} className="h-full w-full" />
                   <div className="absolute top-3 right-3">
                     <span className={`px-3 py-1.5 rounded-full text-xs font-semibold border-2 ${getStatusColor(video.status)}`}>
                       {video.status}
