@@ -1,4 +1,4 @@
-import { S3Client, PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
+import { S3Client, PutObjectCommand, DeleteObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
 const s3Client = new S3Client({
@@ -31,6 +31,17 @@ export const getFileUrl = (key: string): string => {
     return `${process.env.S3_ENDPOINT}/${BUCKET_NAME}/${key}`;
   }
   return `https://${BUCKET_NAME}.s3.${process.env.S3_REGION}.amazonaws.com/${key}`;
+};
+
+export const generateViewUrl = async (key: string): Promise<string> => {
+  const command = new GetObjectCommand({
+    Bucket: BUCKET_NAME,
+    Key: key,
+  });
+
+  const viewUrl = await getSignedUrl(s3Client, command, { expiresIn: 3600 });
+  
+  return viewUrl;
 };
 
 export const deleteFile = async (key: string): Promise<void> => {

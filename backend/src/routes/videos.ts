@@ -4,7 +4,7 @@ import { Channel } from '../models/Channel';
 import { ChannelEditor } from '../models/ChannelEditor';
 import { VideoStatusHistory } from '../models/VideoStatusHistory';
 import { authenticate, AuthRequest } from '../middleware/auth';
-import { generateUploadUrl, getFileUrl, deleteFile, extractKeyFromUrl } from '../utils/storage';
+import { generateUploadUrl, getFileUrl, deleteFile, extractKeyFromUrl, generateViewUrl } from '../utils/storage';
 
 const router = express.Router();
 
@@ -164,7 +164,24 @@ router.get('/', authenticate, async (req: AuthRequest, res: Response) => {
       videos = await Video.find(filter).populate('channelId', 'name').sort({ createdAt: -1 });
     }
 
-    res.json({ videos });
+    // Generate presigned URLs for all videos
+    const videosWithViewUrls = await Promise.all(
+      videos.map(async (video) => {
+        try {
+          const key = extractKeyFromUrl(video.fileUrl);
+          const viewUrl = await generateViewUrl(key);
+          return {
+            ...video.toObject(),
+            fileUrl: viewUrl,
+          };
+        } catch (error) {
+          console.error('Failed to generate view URL for video:', video._id, error);
+          return video.toObject();
+        }
+      })
+    );
+
+    res.json({ videos: videosWithViewUrls });
   } catch (error) {
     console.error('Get videos error:', error);
     res.status(500).json({
@@ -231,7 +248,20 @@ router.get('/:id', authenticate, async (req: AuthRequest, res: Response) => {
       .populate('changedById', 'name')
       .sort({ createdAt: -1 });
 
-    res.json({ video, history });
+    // Generate presigned URL for viewing
+    try {
+      const key = extractKeyFromUrl(video.fileUrl);
+      const viewUrl = await generateViewUrl(key);
+      const videoWithViewUrl = {
+        ...video.toObject(),
+        fileUrl: viewUrl, // Replace with presigned URL
+      };
+      res.json({ video: videoWithViewUrl, history });
+    } catch (error) {
+      // If presigned URL generation fails, return original URL
+      console.error('Failed to generate view URL:', error);
+      res.json({ video, history });
+    }
   } catch (error) {
     console.error('Get video error:', error);
     res.status(500).json({
