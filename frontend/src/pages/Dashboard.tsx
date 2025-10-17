@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../lib/api';
 import { useAuthStore } from '../store/authStore';
@@ -8,6 +8,7 @@ import { ChannelCard } from '../components/ChannelCard';
 export default function Dashboard() {
   const navigate = useNavigate();
   const { user, logout } = useAuthStore();
+  const queryClient = useQueryClient();
   const [showAddChannel, setShowAddChannel] = useState(false);
   const [newChannel, setNewChannel] = useState({
     name: '',
@@ -58,6 +59,18 @@ export default function Dashboard() {
       alert('Failed to create channel');
     }
   };
+
+  const deleteChannelMutation = useMutation({
+    mutationFn: async (channelId: string) => {
+      await api.delete(`/api/channels/${channelId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['channels'] });
+    },
+    onError: (error: any) => {
+      alert(error.response?.data?.error?.message || 'Failed to delete channel');
+    },
+  });
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
@@ -136,7 +149,7 @@ export default function Dashboard() {
         </div>
 
         {/* Action Buttons */}
-        <div className="mb-8 flex gap-4">
+        <div className="mb-8 flex gap-4 flex-wrap">
           <button
             onClick={() => setShowAddChannel(true)}
             className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-8 py-4 rounded-2xl hover:from-purple-700 hover:to-pink-700 font-semibold shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-2"
@@ -148,15 +161,26 @@ export default function Dashboard() {
           </button>
           
           {user?.role === 'owner' && (
-            <button
-              onClick={() => navigate('/review')}
-              className="bg-white text-purple-600 border-2 border-purple-600 px-8 py-4 rounded-2xl hover:bg-purple-50 font-semibold shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-2"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-              </svg>
-              Review Videos
-            </button>
+            <>
+              <button
+                onClick={() => navigate('/tasks')}
+                className="bg-gradient-to-r from-green-600 to-emerald-600 text-white px-8 py-4 rounded-2xl hover:from-green-700 hover:to-emerald-700 font-semibold shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-2"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+                Manage Tasks
+              </button>
+              <button
+                onClick={() => navigate('/review')}
+                className="bg-white text-purple-600 border-2 border-purple-600 px-8 py-4 rounded-2xl hover:bg-purple-50 font-semibold shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-2"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+                Review Videos
+              </button>
+            </>
           )}
         </div>
 
@@ -259,7 +283,12 @@ export default function Dashboard() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {channels.map((channel: any) => (
-              <ChannelCard key={channel._id} channel={channel} youtubeData={channel.youtubeData} />
+              <ChannelCard 
+                key={channel._id} 
+                channel={channel} 
+                youtubeData={channel.youtubeData}
+                onDelete={user?.role === 'owner' ? (channelId) => deleteChannelMutation.mutate(channelId) : undefined}
+              />
             ))}
           </div>
         )}

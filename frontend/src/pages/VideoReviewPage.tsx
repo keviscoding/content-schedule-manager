@@ -13,6 +13,7 @@ export default function VideoReviewPage() {
   const queryClient = useQueryClient();
   const [selectedVideo, setSelectedVideo] = useState<any>(null);
   const [rejectionNotes, setRejectionNotes] = useState('');
+  const [selectedChannelId, setSelectedChannelId] = useState('');
   const [filter, setFilter] = useState<'pending' | 'all'>('pending');
 
   const { data: videosData, isLoading } = useQuery({
@@ -24,13 +25,22 @@ export default function VideoReviewPage() {
     },
   });
 
+  const { data: channelsData } = useQuery({
+    queryKey: ['channels'],
+    queryFn: async () => {
+      const response = await api.get('/api/channels');
+      return response.data;
+    },
+  });
+
   const approveMutation = useMutation({
-    mutationFn: async (videoId: string) => {
-      await api.post(`/api/videos/${videoId}/approve`);
+    mutationFn: async ({ videoId, channelId }: { videoId: string; channelId: string }) => {
+      await api.post(`/api/videos/${videoId}/approve`, { channelId });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['videos'] });
       setSelectedVideo(null);
+      setSelectedChannelId('');
     },
   });
 
@@ -287,20 +297,40 @@ export default function VideoReviewPage() {
                   </div>
                 </div>
 
-                {/* Rejection Notes Input (for pending videos) */}
+                {/* Channel Selection (for pending videos) */}
                 {selectedVideo.status === 'pending' && (
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Rejection Notes (optional)
-                    </label>
-                    <textarea
-                      value={rejectionNotes}
-                      onChange={(e) => setRejectionNotes(e.target.value)}
-                      rows={3}
-                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-4 focus:ring-purple-100 transition-all outline-none resize-none"
-                      placeholder="Explain what needs to be changed..."
-                    />
-                  </div>
+                  <>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Assign to Channel *
+                      </label>
+                      <select
+                        value={selectedChannelId}
+                        onChange={(e) => setSelectedChannelId(e.target.value)}
+                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-4 focus:ring-purple-100 transition-all outline-none"
+                      >
+                        <option value="">Select a channel...</option>
+                        {channelsData?.channels.map((channel: any) => (
+                          <option key={channel._id} value={channel._id}>
+                            {channel.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Rejection Notes (optional)
+                      </label>
+                      <textarea
+                        value={rejectionNotes}
+                        onChange={(e) => setRejectionNotes(e.target.value)}
+                        rows={3}
+                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-4 focus:ring-purple-100 transition-all outline-none resize-none"
+                        placeholder="Explain what needs to be changed..."
+                      />
+                    </div>
+                  </>
                 )}
 
                 {/* Rejection Notes Display (for rejected videos) */}
@@ -324,11 +354,17 @@ export default function VideoReviewPage() {
                       Reject
                     </button>
                     <button
-                      onClick={() => approveMutation.mutate(selectedVideo._id)}
-                      disabled={approveMutation.isPending}
-                      className="flex-1 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors font-semibold disabled:opacity-50"
+                      onClick={() => {
+                        if (!selectedChannelId) {
+                          alert('Please select a channel first');
+                          return;
+                        }
+                        approveMutation.mutate({ videoId: selectedVideo._id, channelId: selectedChannelId });
+                      }}
+                      disabled={approveMutation.isPending || !selectedChannelId}
+                      className="flex-1 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      Approve
+                      Approve & Assign
                     </button>
                   </>
                 )}

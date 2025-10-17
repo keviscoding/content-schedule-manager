@@ -4,9 +4,10 @@ import { TimeSinceUpload } from './TimeSinceUpload';
 interface ChannelCardProps {
   channel: any;
   youtubeData?: any;
+  onDelete?: (channelId: string) => void;
 }
 
-export function ChannelCard({ channel, youtubeData }: ChannelCardProps) {
+export function ChannelCard({ channel, youtubeData, onDelete }: ChannelCardProps) {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'on-time':
@@ -36,10 +37,26 @@ export function ChannelCard({ channel, youtubeData }: ChannelCardProps) {
   return (
     <div className="group relative bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border border-gray-100">
       {/* Status Badge */}
-      <div className="absolute top-4 right-4 z-10">
+      <div className="absolute top-4 right-4 z-10 flex items-center gap-2">
         <span className={`${getStatusColor(channel.status)} text-white text-xs font-semibold px-3 py-1.5 rounded-full shadow-lg`}>
           {getStatusText(channel.status)}
         </span>
+        {onDelete && (
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              if (confirm(`Are you sure you want to delete "${channel.name}"? This will also remove all associated editors and tasks.`)) {
+                onDelete(channel._id);
+              }
+            }}
+            className="bg-red-500 hover:bg-red-600 text-white p-2 rounded-full shadow-lg transition-colors"
+            title="Delete channel"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+          </button>
+        )}
       </div>
 
       {/* Channel Header with Profile Picture */}

@@ -392,6 +392,7 @@ router.delete('/:id', authenticate, async (req: AuthRequest, res: Response) => {
 // Approve video
 router.post('/:id/approve', authenticate, async (req: AuthRequest, res: Response) => {
   try {
+    const { channelId } = req.body; // Channel assignment from owner
     const video = await Video.findById(req.params.id);
 
     if (!video) {
@@ -403,18 +404,29 @@ router.post('/:id/approve', authenticate, async (req: AuthRequest, res: Response
       });
     }
 
-    // Only channel owner can approve
-    const channel = await Channel.findById(video.channelId);
+    // Verify channelId is provided
+    if (!channelId) {
+      return res.status(400).json({
+        error: {
+          code: 'CHANNEL_REQUIRED',
+          message: 'Channel ID is required for approval',
+        },
+      });
+    }
+
+    // Verify owner owns the channel
+    const channel = await Channel.findById(channelId);
     if (!channel || channel.ownerId.toString() !== req.user!.userId) {
       return res.status(403).json({
         error: {
           code: 'FORBIDDEN',
-          message: 'Only the channel owner can approve videos',
+          message: 'You can only approve videos to your own channels',
         },
       });
     }
 
     video.status = 'approved';
+    video.channelId = channelId; // Assign channel during approval
     await video.save();
 
     await VideoStatusHistory.create({
