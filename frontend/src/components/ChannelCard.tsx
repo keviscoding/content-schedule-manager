@@ -1,10 +1,20 @@
 import { Link } from 'react-router-dom';
 import { TimeSinceUpload } from './TimeSinceUpload';
+import { formatDistanceToNow } from 'date-fns';
 
 interface ChannelCardProps {
   channel: any;
   youtubeData?: any;
   onDelete?: (channelId: string) => void;
+}
+
+function formatTimeAgo(date: Date | string): string {
+  const d = typeof date === 'string' ? new Date(date) : date;
+  const hours = Math.floor((Date.now() - d.getTime()) / (1000 * 60 * 60));
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `${days}d ago`;
+  return formatDistanceToNow(d, { addSuffix: true });
 }
 
 export function ChannelCard({ channel, youtubeData, onDelete }: ChannelCardProps) {
@@ -72,11 +82,19 @@ export function ChannelCard({ channel, youtubeData, onDelete }: ChannelCardProps
 
       {/* Channel Info */}
       <div className="pt-12 px-6 pb-6">
-        <Link to={`/channels/${channel._id}`}>
-          <h3 className="text-xl font-bold text-gray-900 hover:text-purple-600 transition-colors mb-2">
+        <div className="flex items-center gap-2 mb-2">
+          <a 
+            href={channel.youtubeUrl} 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="text-xl font-bold text-gray-900 hover:text-purple-600 transition-colors flex items-center gap-1"
+          >
             {channel.name}
-          </h3>
-        </Link>
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+            </svg>
+          </a>
+        </div>
 
         {youtubeData && (
           <div className="space-y-3 mb-4">
@@ -93,10 +111,38 @@ export function ChannelCard({ channel, youtubeData, onDelete }: ChannelCardProps
               />
             </div>
 
-            {youtubeData.latestVideoTitle && (
-              <div className="text-sm text-gray-500">
-                <p className="font-medium text-gray-700 text-xs mb-1">Latest video:</p>
-                <p className="truncate text-xs">{youtubeData.latestVideoTitle}</p>
+            {/* Recent Videos */}
+            {youtubeData.recentVideos && youtubeData.recentVideos.length > 0 && (
+              <div className="mt-4">
+                <p className="text-xs font-semibold text-gray-700 mb-2">Recent Videos:</p>
+                <div className="grid grid-cols-2 gap-2">
+                  {youtubeData.recentVideos.slice(0, 4).map((video: any, idx: number) => (
+                    <a
+                      key={idx}
+                      href={video.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="group/video relative block rounded-lg overflow-hidden hover:ring-2 hover:ring-purple-500 transition-all"
+                    >
+                      <div className="aspect-[9/16] bg-gray-200">
+                        <img
+                          src={video.thumbnail}
+                          alt={video.title}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2">
+                        <p className="text-white text-[10px] font-medium line-clamp-2 mb-1">
+                          {video.title}
+                        </p>
+                        <div className="flex items-center justify-between text-[9px] text-white/90">
+                          <span>{video.viewCount} views</span>
+                          <span>{formatTimeAgo(video.publishedAt)}</span>
+                        </div>
+                      </div>
+                    </a>
+                  ))}
+                </div>
               </div>
             )}
           </div>
@@ -114,7 +160,7 @@ export function ChannelCard({ channel, youtubeData, onDelete }: ChannelCardProps
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
-            Inspiration
+            Competitors
           </Link>
         </div>
       </div>

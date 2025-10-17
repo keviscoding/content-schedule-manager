@@ -9,6 +9,8 @@ import { InspirationChannels } from './pages/InspirationChannels';
 import VideoUploadPage from './pages/VideoUploadPage';
 import VideoReviewPage from './pages/VideoReviewPage';
 import ManageEditors from './pages/ManageEditors';
+import TasksPage from './pages/TasksPage';
+import SimpleUploadPage from './pages/SimpleUploadPage';
 
 const queryClient = new QueryClient();
 
@@ -76,6 +78,22 @@ function App() {
             element={
               <PrivateRoute>
                 <ManageEditors />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/tasks"
+            element={
+              <PrivateRoute>
+                <TasksPage />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/simple-upload"
+            element={
+              <PrivateRoute>
+                <SimpleUploadPage />
               </PrivateRoute>
             }
           />

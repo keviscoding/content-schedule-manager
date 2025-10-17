@@ -33,9 +33,10 @@ async function checkAllChannels() {
           // Calculate status based on time since last upload
           const hoursSinceUpload = (Date.now() - youtubeData.latestVideoDate.getTime()) / (1000 * 60 * 60);
           
-          if (hoursSinceUpload > 48) {
+          // 18-24 hour posting schedule
+          if (hoursSinceUpload > 24) {
             channel.status = 'overdue';
-          } else if (hoursSinceUpload > 36) {
+          } else if (hoursSinceUpload > 18) {
             channel.status = 'due-soon';
           } else {
             channel.status = 'on-time';

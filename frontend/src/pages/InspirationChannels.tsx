@@ -3,6 +3,15 @@ import { useParams, Link } from 'react-router-dom';
 import { api } from '../lib/api';
 import { formatDistanceToNow } from 'date-fns';
 
+function formatTimeAgo(date: Date | string): string {
+  const d = typeof date === 'string' ? new Date(date) : date;
+  const hours = Math.floor((Date.now() - d.getTime()) / (1000 * 60 * 60));
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `${days}d ago`;
+  return formatDistanceToNow(d, { addSuffix: true });
+}
+
 export function InspirationChannels() {
   const { channelId } = useParams();
   const [inspirationChannels, setInspirationChannels] = useState<any[]>([]);
@@ -125,18 +134,43 @@ export function InspirationChannels() {
                       </span>
                     </div>
 
-                    {inspo.youtubeData?.latestVideoTitle && (
-                      <div className="text-sm text-gray-600">
-                        <p className="font-medium text-gray-700">Latest:</p>
-                        <p className="truncate">{inspo.youtubeData.latestVideoTitle}</p>
-                        <p className="text-xs text-gray-400 mt-1">
-                          {formatDistanceToNow(new Date(inspo.youtubeData.latestVideoDate), { addSuffix: true })}
-                        </p>
-                      </div>
+                    {inspo.notes && (
+                      <p className="text-sm text-gray-500 italic mb-3">{inspo.notes}</p>
                     )}
 
-                    {inspo.notes && (
-                      <p className="text-sm text-gray-500 italic">{inspo.notes}</p>
+                    {/* Recent Videos */}
+                    {inspo.youtubeData?.recentVideos && inspo.youtubeData.recentVideos.length > 0 && (
+                      <div className="mt-3">
+                        <p className="text-xs font-semibold text-gray-700 mb-2">Recent Videos:</p>
+                        <div className="grid grid-cols-2 gap-2">
+                          {inspo.youtubeData.recentVideos.slice(0, 4).map((video: any, idx: number) => (
+                            <a
+                              key={idx}
+                              href={video.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="group/video relative block rounded-lg overflow-hidden hover:ring-2 hover:ring-purple-500 transition-all"
+                            >
+                              <div className="aspect-[9/16] bg-gray-200">
+                                <img
+                                  src={video.thumbnail}
+                                  alt={video.title}
+                                  className="w-full h-full object-cover"
+                                />
+                              </div>
+                              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2">
+                                <p className="text-white text-[10px] font-medium line-clamp-2 mb-1">
+                                  {video.title}
+                                </p>
+                                <div className="flex items-center justify-between text-[9px] text-white/90">
+                                  <span>{video.viewCount} views</span>
+                                  <span>{formatTimeAgo(video.publishedAt)}</span>
+                                </div>
+                              </div>
+                            </a>
+                          ))}
+                        </div>
+                      </div>
                     )}
                   </div>
 

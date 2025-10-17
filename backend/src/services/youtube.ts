@@ -3,12 +3,22 @@ import axios from 'axios';
 const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY;
 const YOUTUBE_API_BASE = 'https://www.googleapis.com/youtube/v3';
 
+interface YouTubeVideo {
+  title: string;
+  thumbnail: string;
+  publishedAt: Date;
+  viewCount: string;
+  videoId: string;
+  url: string;
+}
+
 interface YouTubeChannelData {
   profilePicture: string;
   latestVideoTitle: string;
   latestVideoThumbnail: string;
   latestVideoDate: Date;
   subscriberCount: string;
+  recentVideos: YouTubeVideo[];
 }
 
 export async function fetchYouTubeChannelData(channelUrl: string): Promise<YouTubeChannelData | null> {
@@ -38,24 +48,57 @@ export async function fetchYouTubeChannelData(channelUrl: string): Promise<YouTu
     const channel = channelResponse.data.items[0];
     const uploadsPlaylistId = channel.contentDetails.relatedPlaylists.uploads;
 
-    // Fetch latest video
+    // Fetch latest 4 videos
     const videosResponse = await axios.get(`${YOUTUBE_API_BASE}/playlistItems`, {
       params: {
-        part: 'snippet',
+        part: 'snippet,contentDetails',
         playlistId: uploadsPlaylistId,
-        maxResults: 1,
+        maxResults: 4,
         key: YOUTUBE_API_KEY,
       },
     });
 
     const latestVideo = videosResponse.data.items?.[0];
+    const videoItems = videosResponse.data.items || [];
+
+    // Get video IDs to fetch statistics
+    const videoIds = videoItems.map((item: any) => item.contentDetails.videoId).join(',');
+    
+    // Fetch video statistics (views, etc.)
+    const statsResponse = await axios.get(`${YOUTUBE_API_BASE}/videos`, {
+      params: {
+        part: 'statistics',
+        id: videoIds,
+        key: YOUTUBE_API_KEY,
+      },
+    });
+
+    const statsMap = new Map();
+    statsResponse.data.items?.forEach((item: any) => {
+      statsMap.set(item.id, item.statistics);
+    });
+
+    // Build recent videos array
+    const recentVideos: YouTubeVideo[] = videoItems.map((item: any) => {
+      const videoId = item.contentDetails.videoId;
+      const stats = statsMap.get(videoId);
+      return {
+        title: item.snippet.title,
+        thumbnail: item.snippet.thumbnails.high?.url || item.snippet.thumbnails.medium?.url || '',
+        publishedAt: new Date(item.snippet.publishedAt),
+        viewCount: stats ? formatViewCount(stats.viewCount) : '0',
+        videoId,
+        url: `https://www.youtube.com/watch?v=${videoId}`,
+      };
+    });
 
     return {
       profilePicture: channel.snippet.thumbnails.high.url,
       latestVideoTitle: latestVideo?.snippet.title || 'No videos',
-      latestVideoThumbnail: latestVideo?.snippet.thumbnails.high.url || '',
+      latestVideoThumbnail: latestVideo?.snippet.thumbnails.high?.url || '',
       latestVideoDate: latestVideo ? new Date(latestVideo.snippet.publishedAt) : new Date(),
       subscriberCount: formatSubscriberCount(channel.statistics.subscriberCount),
+      recentVideos,
     };
   } catch (error) {
     console.error('Error fetching YouTube data:', error);
@@ -112,6 +155,13 @@ async function extractChannelId(url: string): Promise<string | null> {
 }
 
 function formatSubscriberCount(count: string): string {
+  const num = parseInt(count);
+  if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
+  if (num >= 1000) return `${(num / 1000).toFixed(1)}K`;
+  return count;
+}
+
+function formatViewCount(count: string): string {
   const num = parseInt(count);
   if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
   if (num >= 1000) return `${(num / 1000).toFixed(1)}K`;

@@ -240,11 +240,11 @@ router.post('/:id/refresh-youtube', authenticate, async (req: AuthRequest, res: 
       channel.latestVideoTitle = youtubeData.latestVideoTitle;
       channel.lastYouTubeCheck = new Date();
 
-      // Update status
+      // Update status (18-24 hour posting schedule)
       const hoursSinceUpload = (Date.now() - youtubeData.latestVideoDate.getTime()) / (1000 * 60 * 60);
-      if (hoursSinceUpload > 48) {
+      if (hoursSinceUpload > 24) {
         channel.status = 'overdue';
-      } else if (hoursSinceUpload > 36) {
+      } else if (hoursSinceUpload > 18) {
         channel.status = 'due-soon';
       } else {
         channel.status = 'on-time';
