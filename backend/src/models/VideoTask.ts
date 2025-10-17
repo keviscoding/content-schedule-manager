@@ -8,6 +8,9 @@ export interface IVideoTask extends Document {
   description: string;
   rawVideoUrl: string | null; // Original video to edit
   instructions: string;
+  scriptUrl: string | null; // Script file/link
+  voiceoverUrl: string | null; // Voiceover file/link
+  clipsUrl: string | null; // Clips/footage file/link
   dueDate: Date | null;
   status: 'pending' | 'in-progress' | 'completed' | 'cancelled';
   completedVideoId: Types.ObjectId | null; // Reference to uploaded Video
@@ -51,6 +54,18 @@ const VideoTaskSchema = new Schema<IVideoTask>(
     instructions: {
       type: String,
       default: '',
+    },
+    scriptUrl: {
+      type: String,
+      default: null,
+    },
+    voiceoverUrl: {
+      type: String,
+      default: null,
+    },
+    clipsUrl: {
+      type: String,
+      default: null,
     },
     dueDate: {
       type: Date,

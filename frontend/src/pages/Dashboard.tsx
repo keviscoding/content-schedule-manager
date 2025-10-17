@@ -1,9 +1,10 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tantml:react-query';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../lib/api';
 import { useAuthStore } from '../store/authStore';
 import { useState, useEffect } from 'react';
 import { ChannelCard } from '../components/ChannelCard';
+import { ThemeToggle } from '../components/ThemeToggle';
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -82,17 +83,20 @@ export default function Dashboard() {
               <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
                 Content Schedule Manager
               </h1>
-              <p className="text-gray-600 mt-1">Welcome back, {user?.name} 👋</p>
+              <p className="text-gray-600 dark:text-gray-300 mt-1">Welcome back, {user?.name} 👋</p>
             </div>
-            <button
-              onClick={() => {
-                logout();
-                navigate('/');
-              }}
-              className="px-4 py-2 text-gray-700 hover:text-gray-900 transition-colors font-medium"
-            >
-              Logout
-            </button>
+            <div className="flex items-center gap-3">
+              <ThemeToggle />
+              <button
+                onClick={() => {
+                  logout();
+                  navigate('/');
+                }}
+                className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors font-medium"
+              >
+                Logout
+              </button>
+            </div>
           </div>
         </div>
       </div>

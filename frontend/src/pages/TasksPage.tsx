@@ -14,7 +14,10 @@ export default function TasksPage() {
     title: '',
     description: '',
     assignedToId: '',
-    dueDate: '',
+    channelId: '',
+    scriptUrl: '',
+    voiceoverUrl: '',
+    clipsUrl: '',
   });
 
   // Get all tasks
@@ -46,19 +49,41 @@ export default function TasksPage() {
 
   const createTaskMutation = useMutation({
     mutationFn: async (taskData: any) => {
-      // For now, we'll assign to the first channel (owner can change later)
-      const firstChannel = channelsData?.channels[0];
-      if (!firstChannel) {
-        throw new Error('You need at least one channel to create tasks');
+      if (!taskData.channelId) {
+        throw new Error('Please select a channel');
       }
       
-      const response = await api.post(`/api/channels/${firstChannel._id}/tasks`, taskData);
+      // Calculate due date based on channel's next deadline
+      const channel = channelsData?.channels.find((c: any) => c._id === taskData.channelId);
+      let dueDate = null;
+      
+      if (channel) {
+        // Calculate next upload deadline (24 hours from last upload or now)
+        const lastUpload = channel.latestVideoDate ? new Date(channel.latestVideoDate) : new Date();
+        const nextDeadline = new Date(lastUpload.getTime() + 24 * 60 * 60 * 1000);
+        
+        // Set task due date to 2 hours before upload deadline (buffer time)
+        dueDate = new Date(nextDeadline.getTime() - 2 * 60 * 60 * 1000);
+      }
+      
+      const response = await api.post(`/api/channels/${taskData.channelId}/tasks`, {
+        ...taskData,
+        dueDate,
+      });
       return response.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['all-tasks'] });
       setShowAddTask(false);
-      setNewTask({ title: '', description: '', assignedToId: '', dueDate: '' });
+      setNewTask({ 
+        title: '', 
+        description: '', 
+        assignedToId: '', 
+        channelId: '',
+        scriptUrl: '',
+        voiceoverUrl: '',
+        clipsUrl: '',
+      });
     },
     onError: (error: any) => {
       alert(error.response?.data?.error?.message || 'Failed to create task');
@@ -259,7 +284,7 @@ export default function TasksPage() {
                         <p className="text-gray-600 mb-3">{task.description}</p>
                       )}
                       
-                      <div className="flex items-center gap-6 text-sm text-gray-500">
+                      <div className="flex items-center gap-6 text-sm text-gray-500 mb-3">
                         <div className="flex items-center gap-2">
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -276,6 +301,51 @@ export default function TasksPage() {
                           </div>
                         )}
                       </div>
+
+                      {/* Attachments */}
+                      {(task.scriptUrl || task.voiceoverUrl || task.clipsUrl) && (
+                        <div className="flex flex-wrap gap-2">
+                          {task.scriptUrl && (
+                            <a
+                              href={task.scriptUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium hover:bg-blue-200 transition-colors"
+                            >
+                              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                              </svg>
+                              Script
+                            </a>
+                          )}
+                          {task.voiceoverUrl && (
+                            <a
+                              href={task.voiceoverUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium hover:bg-green-200 transition-colors"
+                            >
+                              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                              </svg>
+                              Voiceover
+                            </a>
+                          )}
+                          {task.clipsUrl && (
+                            <a
+                              href={task.clipsUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-medium hover:bg-purple-200 transition-colors"
+                            >
+                              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                              </svg>
+                              Clips
+                            </a>
+                          )}
+                        </div>
+                      )}
                     </div>
                     
                     <button
@@ -322,15 +392,46 @@ export default function TasksPage() {
 
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Description
+                  Channel *
                 </label>
-                <textarea
-                  value={newTask.description}
-                  onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
-                  rows={3}
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-4 focus:ring-purple-100 transition-all outline-none resize-none"
-                  placeholder="Describe what needs to be done..."
-                />
+                <select
+                  value={newTask.channelId}
+                  onChange={(e) => setNewTask({ ...newTask, channelId: e.target.value })}
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-4 focus:ring-purple-100 transition-all outline-none"
+                >
+                  <option value="">Select a channel...</option>
+                  {channels.map((channel: any) => (
+                    <option key={channel._id} value={channel._id}>
+                      {channel.name}
+                    </option>
+                  ))}
+                </select>
+                {newTask.channelId && (() => {
+                  const channel = channels.find((c: any) => c._id === newTask.channelId);
+                  if (channel) {
+                    const lastUpload = channel.latestVideoDate ? new Date(channel.latestVideoDate) : new Date();
+                    const nextDeadline = new Date(lastUpload.getTime() + 24 * 60 * 60 * 1000);
+                    const hoursUntil = Math.floor((nextDeadline.getTime() - Date.now()) / (1000 * 60 * 60));
+                    return (
+                      <div className="mt-2 p-3 bg-purple-50 border-2 border-purple-200 rounded-lg">
+                        <div className="flex items-center gap-2">
+                          <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          <div>
+                            <p className="text-sm font-bold text-purple-900">
+                              Upload Target: {channel.targetPostingTime}
+                            </p>
+                            <p className="text-xs text-purple-700">
+                              {hoursUntil > 0 ? `${hoursUntil} hours until next upload` : 'Upload overdue!'}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  }
+                  return null;
+                })()}
               </div>
 
               <div>
@@ -353,14 +454,56 @@ export default function TasksPage() {
 
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Due Date (optional)
+                  Description
                 </label>
-                <input
-                  type="datetime-local"
-                  value={newTask.dueDate}
-                  onChange={(e) => setNewTask({ ...newTask, dueDate: e.target.value })}
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-4 focus:ring-purple-100 transition-all outline-none"
+                <textarea
+                  value={newTask.description}
+                  onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
+                  rows={2}
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-4 focus:ring-purple-100 transition-all outline-none resize-none"
+                  placeholder="Additional details..."
                 />
+              </div>
+
+              <div className="grid grid-cols-1 gap-3">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Script URL (optional)
+                  </label>
+                  <input
+                    type="url"
+                    value={newTask.scriptUrl}
+                    onChange={(e) => setNewTask({ ...newTask, scriptUrl: e.target.value })}
+                    className="w-full px-4 py-2 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-4 focus:ring-purple-100 transition-all outline-none text-sm"
+                    placeholder="https://docs.google.com/..."
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Voiceover URL (optional)
+                  </label>
+                  <input
+                    type="url"
+                    value={newTask.voiceoverUrl}
+                    onChange={(e) => setNewTask({ ...newTask, voiceoverUrl: e.target.value })}
+                    className="w-full px-4 py-2 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-4 focus:ring-purple-100 transition-all outline-none text-sm"
+                    placeholder="https://drive.google.com/..."
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Clips/Footage URL (optional)
+                  </label>
+                  <input
+                    type="url"
+                    value={newTask.clipsUrl}
+                    onChange={(e) => setNewTask({ ...newTask, clipsUrl: e.target.value })}
+                    className="w-full px-4 py-2 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-4 focus:ring-purple-100 transition-all outline-none text-sm"
+                    placeholder="https://drive.google.com/..."
+                  />
+                </div>
               </div>
             </div>
 
@@ -369,7 +512,15 @@ export default function TasksPage() {
                 type="button"
                 onClick={() => {
                   setShowAddTask(false);
-                  setNewTask({ title: '', description: '', assignedToId: '', dueDate: '' });
+                  setNewTask({ 
+                    title: '', 
+                    description: '', 
+                    assignedToId: '', 
+                    channelId: '',
+                    scriptUrl: '',
+                    voiceoverUrl: '',
+                    clipsUrl: '',
+                  });
                 }}
                 className="flex-1 px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors font-medium"
               >
@@ -377,8 +528,8 @@ export default function TasksPage() {
               </button>
               <button
                 onClick={() => {
-                  if (!newTask.title || !newTask.assignedToId) {
-                    alert('Please fill in the title and assign to an editor');
+                  if (!newTask.title || !newTask.assignedToId || !newTask.channelId) {
+                    alert('Please fill in the title, channel, and assign to an editor');
                     return;
                   }
                   createTaskMutation.mutate(newTask);
