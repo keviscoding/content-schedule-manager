@@ -17,6 +17,14 @@ export function InspirationChannels() {
   const [inspirationChannels, setInspirationChannels] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [channel, setChannel] = useState<any>(null);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [newCompetitor, setNewCompetitor] = useState({
+    name: '',
+    youtubeUrl: '',
+    niche: '',
+    notes: '',
+  });
+  const [adding, setAdding] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -34,6 +42,37 @@ export function InspirationChannels() {
       console.error('Error fetching inspiration channels:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleAddCompetitor = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newCompetitor.name || !newCompetitor.youtubeUrl || !newCompetitor.niche) {
+      alert('Please fill in all required fields');
+      return;
+    }
+
+    setAdding(true);
+    try {
+      await api.post(`/api/channels/${channelId}/inspiration-channels`, newCompetitor);
+      setShowAddModal(false);
+      setNewCompetitor({ name: '', youtubeUrl: '', niche: '', notes: '' });
+      await fetchData();
+    } catch (error: any) {
+      alert(error.response?.data?.error?.message || 'Failed to add competitor');
+    } finally {
+      setAdding(false);
+    }
+  };
+
+  const handleDeleteCompetitor = async (competitorId: string) => {
+    if (!confirm('Are you sure you want to remove this competitor?')) return;
+
+    try {
+      await api.delete(`/api/channels/${channelId}/inspiration-channels/${competitorId}`);
+      await fetchData();
+    } catch (error: any) {
+      alert(error.response?.data?.error?.message || 'Failed to delete competitor');
     }
   };
 
@@ -68,12 +107,25 @@ export function InspirationChannels() {
             </svg>
             Back to {channel?.name}
           </Link>
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-            Inspiration Channels
-          </h1>
-          <p className="text-gray-600 mt-2">
-            Channels that inspire your content for {channel?.name}
-          </p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                Competitor Channels
+              </h1>
+              <p className="text-gray-600 mt-2">
+                Track competitor performance for {channel?.name}
+              </p>
+            </div>
+            <button
+              onClick={() => setShowAddModal(true)}
+              className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-3 rounded-xl hover:from-purple-700 hover:to-pink-700 font-semibold shadow-lg transition-all flex items-center gap-2"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              Add Competitor
+            </button>
+          </div>
         </div>
 
         {/* Inspiration Channels Grid */}
@@ -84,8 +136,14 @@ export function InspirationChannels() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
               </svg>
             </div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">No inspiration channels yet</h3>
-            <p className="text-gray-600">Add channels that inspire your content</p>
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">No competitors yet</h3>
+            <p className="text-gray-600 mb-4">Add competitor channels to track their performance</p>
+            <button
+              onClick={() => setShowAddModal(true)}
+              className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-3 rounded-xl hover:from-purple-700 hover:to-pink-700 font-semibold"
+            >
+              Add First Competitor
+            </button>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -174,20 +232,119 @@ export function InspirationChannels() {
                     )}
                   </div>
 
-                  <a
-                    href={inspo.youtubeUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="block w-full text-center bg-gradient-to-r from-purple-600 to-pink-600 text-white py-2 rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-300 font-medium"
-                  >
-                    View on YouTube
-                  </a>
+                  <div className="flex gap-2">
+                    <a
+                      href={inspo.youtubeUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex-1 text-center bg-gradient-to-r from-purple-600 to-pink-600 text-white py-2 rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-300 font-medium"
+                    >
+                      View on YouTube
+                    </a>
+                    <button
+                      onClick={() => handleDeleteCompetitor(inspo._id)}
+                      className="px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                      title="Remove competitor"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
           </div>
         )}
       </div>
+
+      {/* Add Competitor Modal */}
+      {showAddModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl p-8 w-full max-w-md shadow-2xl">
+            <h2 className="text-2xl font-bold mb-6 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+              Add Competitor Channel
+            </h2>
+            
+            <form onSubmit={handleAddCompetitor} className="space-y-4">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Channel Name *
+                </label>
+                <input
+                  type="text"
+                  value={newCompetitor.name}
+                  onChange={(e) => setNewCompetitor({ ...newCompetitor, name: e.target.value })}
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-4 focus:ring-purple-100 transition-all outline-none"
+                  placeholder="e.g., MrBeast"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  YouTube URL *
+                </label>
+                <input
+                  type="url"
+                  value={newCompetitor.youtubeUrl}
+                  onChange={(e) => setNewCompetitor({ ...newCompetitor, youtubeUrl: e.target.value })}
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-4 focus:ring-purple-100 transition-all outline-none"
+                  placeholder="https://youtube.com/@channel"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Niche/Category *
+                </label>
+                <input
+                  type="text"
+                  value={newCompetitor.niche}
+                  onChange={(e) => setNewCompetitor({ ...newCompetitor, niche: e.target.value })}
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-4 focus:ring-purple-100 transition-all outline-none"
+                  placeholder="e.g., Gaming, Comedy, Education"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Notes (optional)
+                </label>
+                <textarea
+                  value={newCompetitor.notes}
+                  onChange={(e) => setNewCompetitor({ ...newCompetitor, notes: e.target.value })}
+                  rows={3}
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-4 focus:ring-purple-100 transition-all outline-none resize-none"
+                  placeholder="Why are you tracking this competitor?"
+                />
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowAddModal(false);
+                    setNewCompetitor({ name: '', youtubeUrl: '', niche: '', notes: '' });
+                  }}
+                  className="flex-1 px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors font-medium"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={adding}
+                  className="flex-1 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl hover:from-purple-700 hover:to-pink-700 transition-all font-medium shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {adding ? 'Adding...' : 'Add Competitor'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
