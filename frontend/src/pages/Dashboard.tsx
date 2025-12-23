@@ -11,6 +11,7 @@ export default function Dashboard() {
   const { user, logout } = useAuthStore();
   const queryClient = useQueryClient();
   const [showAddChannel, setShowAddChannel] = useState(false);
+  const [showArchived, setShowArchived] = useState(false);
   const [newChannel, setNewChannel] = useState({
     name: '',
     youtubeUrl: '',
@@ -25,9 +26,9 @@ export default function Dashboard() {
   }, [user?.role, navigate]);
 
   const { data: channelsData, refetch, isLoading } = useQuery({
-    queryKey: ['channels'],
+    queryKey: ['channels', showArchived],
     queryFn: async () => {
-      const response = await api.get('/api/channels');
+      const response = await api.get(`/api/channels?archived=${showArchived}`);
       // Fetch YouTube data for each channel
       const channelsWithYouTube = await Promise.all(
         response.data.channels.map(async (channel: any) => {
@@ -73,6 +74,30 @@ export default function Dashboard() {
     },
   });
 
+  const archiveChannelMutation = useMutation({
+    mutationFn: async (channelId: string) => {
+      await api.post(`/api/channels/${channelId}/archive`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['channels'] });
+    },
+    onError: (error: any) => {
+      alert(error.response?.data?.error?.message || 'Failed to archive channel');
+    },
+  });
+
+  const unarchiveChannelMutation = useMutation({
+    mutationFn: async (channelId: string) => {
+      await api.post(`/api/channels/${channelId}/unarchive`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['channels'] });
+    },
+    onError: (error: any) => {
+      alert(error.response?.data?.error?.message || 'Failed to unarchive channel');
+    },
+  });
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
       {/* Header */}
@@ -108,7 +133,9 @@ export default function Dashboard() {
           <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
             <div className="flex items-center justify-between">
               <div>
-                <div className="text-sm font-medium text-gray-600">Total Channels</div>
+                <div className="text-sm font-medium text-gray-600">
+                  {showArchived ? 'Archived Channels' : 'Active Channels'}
+                </div>
                 <div className="text-4xl font-bold text-gray-900 mt-2">{channels.length}</div>
               </div>
               <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center">
@@ -153,7 +180,7 @@ export default function Dashboard() {
         </div>
 
         {/* Action Buttons */}
-        <div className="mb-8 flex gap-4 flex-wrap">
+        <div className="mb-8 flex gap-4 flex-wrap items-center">
           <button
             onClick={() => setShowAddChannel(true)}
             className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-8 py-4 rounded-2xl hover:from-purple-700 hover:to-pink-700 font-semibold shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-2"
@@ -186,6 +213,21 @@ export default function Dashboard() {
               </button>
             </>
           )}
+
+          {/* Archive Toggle */}
+          <button
+            onClick={() => setShowArchived(!showArchived)}
+            className={`ml-auto px-6 py-4 rounded-2xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-2 ${
+              showArchived
+                ? 'bg-gradient-to-r from-gray-600 to-slate-600 text-white hover:from-gray-700 hover:to-slate-700'
+                : 'bg-white text-gray-700 border-2 border-gray-300 hover:bg-gray-50'
+            }`}
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+            </svg>
+            {showArchived ? 'Show Active' : 'Show Archived'}
+          </button>
         </div>
 
         {/* Add Channel Modal */}
@@ -269,20 +311,33 @@ export default function Dashboard() {
           <div className="bg-white rounded-2xl shadow-lg p-16 text-center">
             <div className="inline-flex items-center justify-center w-20 h-20 bg-purple-100 rounded-full mb-4">
               <svg className="w-10 h-10 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z" />
+                {showArchived ? (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                ) : (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z" />
+                )}
               </svg>
             </div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-2">No channels yet</h3>
-            <p className="text-gray-600 mb-6">Add your first channel to start managing your content schedule!</p>
-            <button
-              onClick={() => setShowAddChannel(true)}
-              className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-3 rounded-xl hover:from-purple-700 hover:to-pink-700 font-medium shadow-lg inline-flex items-center gap-2"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
-              Add Your First Channel
-            </button>
+            <h3 className="text-2xl font-bold text-gray-900 mb-2">
+              {showArchived ? 'No archived channels' : 'No channels yet'}
+            </h3>
+            <p className="text-gray-600 mb-6">
+              {showArchived 
+                ? 'You haven\'t archived any channels yet. Archive channels you\'re not actively working on to keep your dashboard clean.'
+                : 'Add your first channel to start managing your content schedule!'
+              }
+            </p>
+            {!showArchived && (
+              <button
+                onClick={() => setShowAddChannel(true)}
+                className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-3 rounded-xl hover:from-purple-700 hover:to-pink-700 font-medium shadow-lg inline-flex items-center gap-2"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+                Add Your First Channel
+              </button>
+            )}
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -292,6 +347,8 @@ export default function Dashboard() {
                 channel={channel} 
                 youtubeData={channel.youtubeData}
                 onDelete={user?.role === 'owner' ? (channelId) => deleteChannelMutation.mutate(channelId) : undefined}
+                onArchive={user?.role === 'owner' && !showArchived ? (channelId) => archiveChannelMutation.mutate(channelId) : undefined}
+                onUnarchive={user?.role === 'owner' && showArchived ? (channelId) => unarchiveChannelMutation.mutate(channelId) : undefined}
               />
             ))}
           </div>

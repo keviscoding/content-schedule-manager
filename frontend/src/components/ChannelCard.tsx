@@ -6,6 +6,8 @@ interface ChannelCardProps {
   channel: any;
   youtubeData?: any;
   onDelete?: (channelId: string) => void;
+  onArchive?: (channelId: string) => void;
+  onUnarchive?: (channelId: string) => void;
 }
 
 function formatTimeAgo(date: Date | string): string {
@@ -17,7 +19,7 @@ function formatTimeAgo(date: Date | string): string {
   return formatDistanceToNow(d, { addSuffix: true });
 }
 
-export function ChannelCard({ channel, youtubeData, onDelete }: ChannelCardProps) {
+export function ChannelCard({ channel, youtubeData, onDelete, onArchive, onUnarchive }: ChannelCardProps) {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'on-time':
@@ -51,6 +53,38 @@ export function ChannelCard({ channel, youtubeData, onDelete }: ChannelCardProps
         <span className={`${getStatusColor(channel.status)} text-white text-xs font-semibold px-3 py-1.5 rounded-full shadow-lg`}>
           {getStatusText(channel.status)}
         </span>
+        {onArchive && (
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              if (confirm(`Archive "${channel.name}"? You can restore it later from the archived channels view.`)) {
+                onArchive(channel._id);
+              }
+            }}
+            className="bg-gray-500 hover:bg-gray-600 text-white p-2 rounded-full shadow-lg transition-colors"
+            title="Archive channel"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+            </svg>
+          </button>
+        )}
+        {onUnarchive && (
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              if (confirm(`Restore "${channel.name}" to active channels?`)) {
+                onUnarchive(channel._id);
+              }
+            }}
+            className="bg-green-500 hover:bg-green-600 text-white p-2 rounded-full shadow-lg transition-colors"
+            title="Unarchive channel"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+            </svg>
+          </button>
+        )}
         {onDelete && (
           <button
             onClick={(e) => {

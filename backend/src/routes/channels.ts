@@ -11,16 +11,25 @@ const router = express.Router();
 // Get all channels for the current user
 router.get('/', authenticate, async (req: AuthRequest, res: Response) => {
   try {
+    const showArchived = req.query.archived === 'true';
+    const filter: any = showArchived ? { isArchived: true } : { isArchived: { $ne: true } };
+
     let channels;
 
     if (req.user!.role === 'owner') {
       // Owners see their own channels
-      channels = await Channel.find({ ownerId: req.user!.userId }).sort({ status: 1, name: 1 });
+      channels = await Channel.find({ 
+        ownerId: req.user!.userId,
+        ...filter
+      }).sort({ status: 1, name: 1 });
     } else {
       // Editors see channels they're assigned to
       const assignments = await ChannelEditor.find({ editorId: req.user!.userId });
       const channelIds = assignments.map(a => a.channelId);
-      channels = await Channel.find({ _id: { $in: channelIds } }).sort({ status: 1, name: 1 });
+      channels = await Channel.find({ 
+        _id: { $in: channelIds },
+        ...filter
+      }).sort({ status: 1, name: 1 });
     }
 
     res.json({ channels });
@@ -264,6 +273,78 @@ router.post('/:id/refresh-youtube', authenticate, async (req: AuthRequest, res: 
       error: {
         code: 'SERVER_ERROR',
         message: 'Failed to refresh YouTube data',
+      },
+    });
+  }
+});
+
+// Archive a channel
+router.post('/:id/archive', authenticate, requireChannelOwnership, async (req: AuthRequest, res: Response) => {
+  try {
+    const channel = await Channel.findByIdAndUpdate(
+      req.params.id,
+      { 
+        isArchived: true,
+        archivedAt: new Date()
+      },
+      { new: true }
+    );
+
+    if (!channel) {
+      return res.status(404).json({
+        error: {
+          code: 'CHANNEL_NOT_FOUND',
+          message: 'Channel not found',
+        },
+      });
+    }
+
+    res.json({ 
+      channel,
+      message: 'Channel archived successfully' 
+    });
+  } catch (error) {
+    console.error('Archive channel error:', error);
+    res.status(500).json({
+      error: {
+        code: 'SERVER_ERROR',
+        message: 'Failed to archive channel',
+      },
+    });
+  }
+});
+
+// Unarchive a channel
+router.post('/:id/unarchive', authenticate, requireChannelOwnership, async (req: AuthRequest, res: Response) => {
+  try {
+    const channel = await Channel.findByIdAndUpdate(
+      req.params.id,
+      { 
+        isArchived: false,
+        archivedAt: null
+      },
+      { new: true }
+    );
+
+    if (!channel) {
+      return res.status(404).json({
+        error: {
+          code: 'CHANNEL_NOT_FOUND',
+          message: 'Channel not found',
+        },
+      });
+    }
+
+    res.json({ 
+      channel,
+      message: 'Channel unarchived successfully' 
+    });
+  } catch (error) {
+    console.error('Unarchive channel error:', error);
+    res.status(500).json({
+      error: {
+        code: 'SERVER_ERROR',
+        message: 'Failed to unarchive channel',
       },
     });
   }

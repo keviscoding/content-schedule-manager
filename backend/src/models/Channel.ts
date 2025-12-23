@@ -22,6 +22,8 @@ export interface IChannel extends Document {
   youtubeChannelId: string | null;
   latestVideoDate: Date | null;
   latestVideoTitle: string | null;
+  isArchived: boolean;
+  archivedAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -109,6 +111,15 @@ const ChannelSchema = new Schema<IChannel>(
     },
     latestVideoTitle: {
       type: String,
+      default: null,
+    },
+    isArchived: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
+    archivedAt: {
+      type: Date,
       default: null,
     },
   },
